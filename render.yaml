@@ -2,10 +2,12 @@ services:
   - type: web
     name: pathhub
     env: node
-    buildCommand: npm install
+    buildCommand: npm ci --production
     startCommand: npm start
     plan: free
     healthCheckPath: /
+    region: oregon
+    numInstances: 1
     envVars:
       - key: NODE_ENV
         value: production
