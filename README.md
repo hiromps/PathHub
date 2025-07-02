@@ -77,7 +77,6 @@ pathhub://C:\Users
 **確認**: 以下のパス形式で正常動作を確認済み
 ```
 C:\Users\username\Documents\Blender\アクアリウムテクスチャー
-\\MinoruStation\home\Drive\_NAS階層化root\07_画像\ミノル化学工業画像まとめ
 ```
 
 ### ログの確認
