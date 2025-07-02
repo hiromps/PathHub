@@ -7,13 +7,16 @@ const { nanoid } = require('nanoid');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// データベースパスを環境変数で設定可能に
+const DB_PATH = process.env.DATABASE_PATH || 'pathhub.db';
+
 // ミドルウェア
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
 // データベース初期化
-const db = new sqlite3.Database('pathhub.db');
+const db = new sqlite3.Database(DB_PATH);
 
 // テーブル作成
 db.serialize(() => {

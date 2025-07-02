@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: pathhub
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /opt/render/project/data/pathhub.db
+    disk:
+      name: data
+      mountPath: /opt/render/project/data
+      sizeGB: 1 
