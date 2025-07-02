@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathHub - ファイルパス共有を、もっとスマートに。</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        
+        <!-- ヘッダー -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">PathHub</h1>
+            <p class="text-gray-500 mt-2 text-lg">ファイルパス共有を、もっとスマートに。</p>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
+            <div class="text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <h2 class="text-2xl font-bold mt-4">共有リンクを生成</h2>
+                <p class="text-gray-500 mt-1">PCのエクスプローラーのアドレスを貼り付けてください。</p>
+            </div>
+
+            <!-- 入力フォーム -->
+            <div class="mt-8">
+                <div class="relative">
+                    <input type="text" id="pathInput" class="w-full p-4 pr-28 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow" placeholder="例: \\server01\share\プロジェクト資料">
+                    <button id="pasteButton" class="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-200 text-gray-600 hover:bg-gray-300 font-semibold py-2 px-4 rounded-md text-sm transition-colors">貼り付け</button>
+                </div>
+                <button id="generateButton" class="w-full mt-4 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-102 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span id="buttonText">共有リンクを生成する</span>
+                    <div id="buttonLoader" class="loading hidden"></div>
+                </button>
+            </div>
+
+            <!-- エラー表示エリア -->
+            <div id="errorArea" class="mt-4 hidden">
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex">
+                        <svg class="w-5 h-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">エラーが発生しました</h3>
+                            <p id="errorMessage" class="mt-1 text-sm text-red-700"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 結果表示エリア -->
+            <div id="resultArea" class="mt-8 hidden fade-in">
+                <div class="bg-gray-100 p-6 rounded-lg border border-gray-200">
+                    <h3 class="font-bold text-lg mb-4">共有リンクが生成されました！</h3>
+                    
+                    <!-- 共有リンク -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">通常の共有リンク</label>
+                            <div class="flex items-center space-x-2 bg-white p-3 rounded-md border">
+                                <input type="text" id="sharedLink" class="flex-grow bg-transparent border-none focus:ring-0" readonly>
+                                <button id="copyLinkButton" class="bg-blue-100 text-blue-700 hover:bg-blue-200 font-semibold py-1 px-3 rounded-md text-sm transition-colors">コピー</button>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">自動実行リンク（推奨）</label>
+                            <div class="flex items-center space-x-2 bg-green-50 p-3 rounded-md border border-green-200">
+                                <input type="text" id="autoSharedLink" class="flex-grow bg-transparent border-none focus:ring-0" readonly>
+                                <button id="copyAutoLinkButton" class="bg-green-100 text-green-700 hover:bg-green-200 font-semibold py-1 px-3 rounded-md text-sm transition-colors">コピー</button>
+                            </div>
+                            <p class="text-xs text-green-600 mt-1">このリンクをクリックすると自動的にエクスプローラーが開きます</p>
+                        </div>
+                    </div>
+                    
+                    <p id="copyStatus" class="text-green-600 text-sm mt-1 h-4"></p>
+
+                    <!-- プレビュー -->
+                    <div class="mt-6 pt-6 border-t">
+                        <h4 class="font-semibold text-gray-500 text-sm mb-2">相手にはこのように表示されます:</h4>
+                        <div class="border rounded-lg p-4 bg-white shadow-sm">
+                            <div class="flex items-center">
+                                <div id="fileIcon" class="mr-4"></div>
+                                <span id="fileName" class="font-bold text-lg"></span>
+                            </div>
+                            <div class="mt-4 bg-gray-50 p-3 rounded-md">
+                                <label class="text-xs font-semibold text-gray-500">ファイルパス</label>
+                                <p id="fullPath" class="text-sm break-all"></p>
+                            </div>
+                            <button onclick="testAutoExecution()" class="w-full mt-4 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                                </svg>
+                                エクスプローラーで開く（プレビューテスト）
+                            </button>
+                            <p class="text-xs text-gray-400 mt-2 text-center">※上記ボタンで動作確認ができます</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="text-center mt-10 text-gray-400 text-sm">
+            <p>&copy; 2025 PathHub. All Rights Reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const pathInput = document.getElementById('pathInput');
+        const pasteButton = document.getElementById('pasteButton');
+        const generateButton = document.getElementById('generateButton');
+        const buttonText = document.getElementById('buttonText');
+        const buttonLoader = document.getElementById('buttonLoader');
+        const resultArea = document.getElementById('resultArea');
+        const errorArea = document.getElementById('errorArea');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        const sharedLink = document.getElementById('sharedLink');
+        const copyLinkButton = document.getElementById('copyLinkButton');
+        const autoSharedLink = document.getElementById('autoSharedLink');
+        const copyAutoLinkButton = document.getElementById('copyAutoLinkButton');
+        const copyStatus = document.getElementById('copyStatus');
+
+        const fileIcon = document.getElementById('fileIcon');
+        const fileName = document.getElementById('fileName');
+        const fullPath = document.getElementById('fullPath');
+
+        // 現在のパスを保存（テスト用）
+        let currentPath = '';
+        let currentAutoLink = '';
+
+        // フォルダアイコンのSVG
+        const folderIconSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+            </svg>`;
+        
+        // ファイルアイコンのSVG
+        const fileIconSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+            </svg>`;
+
+        // エラー表示関数
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorArea.classList.remove('hidden');
+            resultArea.classList.add('hidden');
+        }
+
+        // エラー非表示関数
+        function hideError() {
+            errorArea.classList.add('hidden');
+        }
+
+        // ローディング状態の管理
+        function setLoading(loading) {
+            if (loading) {
+                generateButton.disabled = true;
+                buttonText.classList.add('hidden');
+                buttonLoader.classList.remove('hidden');
+            } else {
+                generateButton.disabled = false;
+                buttonText.classList.remove('hidden');
+                buttonLoader.classList.add('hidden');
+            }
+        }
+
+        // 自動実行テスト機能
+        function testAutoExecution() {
+            if (!currentPath) {
+                alert('パスが設定されていません');
+                return;
+            }
+            
+            console.log('自動実行テストを開始:', currentPath);
+            
+            // プロトコルURLを生成
+            const encodedPath = encodeURIComponent(currentPath);
+            const protocolUrl = `pathhub://${encodedPath}`;
+            
+            // 複数の方法で実行
+            executeProtocolHandler(protocolUrl);
+        }
+        
+        // 実行管理用の変数
+        let executionAttempts = 0;
+        let executionSuccess = false;
+        let fallbackTimeouts = [];
+        
+        function executeProtocolHandler(protocolUrl) {
+            console.log('サイレントモードでプロトコルハンドラーを実行:', protocolUrl);
+            
+            // 既に成功している場合は実行しない
+            if (executionSuccess) {
+                console.log('✅ 既に実行済みのためスキップ');
+                return;
+            }
+            
+            // 進行中のタイムアウトをクリア
+            fallbackTimeouts.forEach(timeout => clearTimeout(timeout));
+            fallbackTimeouts = [];
+            
+            executionAttempts++;
+            console.log(`実行試行回数: ${executionAttempts}`);
+            
+            // 隠しiframeを使用してサイレント実行
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.style.width = '1px';
+            iframe.style.height = '1px';
+            iframe.style.position = 'absolute';
+            iframe.style.left = '-9999px';
+            
+            // iframeのイベントハンドラー
+            iframe.onload = () => {
+                console.log('✅ プロトコルハンドラー実行成功（iframe経由）');
+                executionSuccess = true;
+                cleanupIframe();
+            };
+            
+            iframe.onerror = () => {
+                console.log('⚠️ iframe読み込みエラー - プロトコルハンドラー実行中');
+                executionSuccess = true;
+                cleanupIframe();
+            };
+            
+            function cleanupIframe() {
+                setTimeout(() => {
+                    if (iframe.parentNode) {
+                        iframe.parentNode.removeChild(iframe);
+                    }
+                }, 1000);
+            }
+            
+            try {
+                document.body.appendChild(iframe);
+                iframe.src = protocolUrl;
+                console.log('✅ サイレント実行開始');
+                
+                // フォールバック: 一定時間後に直接実行も試行
+                const fallbackTimeout = setTimeout(() => {
+                    if (!executionSuccess) {
+                        console.log('🔄 フォールバック: アンカータグクリックを試行');
+                        try {
+                            const link = document.createElement('a');
+                            link.href = protocolUrl;
+                            link.style.display = 'none';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            executionSuccess = true;
+                        } catch (error) {
+                            console.log('❌ フォールバック失敗:', error.message);
+                        }
+                    }
+                }, 2000);
+                fallbackTimeouts.push(fallbackTimeout);
+                
+            } catch (error) {
+                console.log('❌ サイレント実行エラー:', error.message);
+                // 最終手段: 直接実行
+                try {
+                    window.location.href = protocolUrl;
+                } catch (finalError) {
+                    console.log('❌ 最終実行も失敗:', finalError.message);
+                }
+            }
+            
+            // 実行完了後のリセット処理
+            const resetTimeout = setTimeout(() => {
+                console.log('🔄 実行状態をリセット');
+                executionSuccess = false;
+                executionAttempts = 0;
+                fallbackTimeouts = [];
+            }, 8000);
+            fallbackTimeouts.push(resetTimeout);
+            
+            // フィードバック表示
+            showTestFeedback();
+        }
+        
+        function showTestFeedback() {
+            // 通知表示
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-md';
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <p class="font-bold">PathHub テスト実行</p>
+                        <p class="text-sm">エクスプローラーが開くまでお待ちください...</p>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // 貼り付けボタンの機能
+        pasteButton.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                pathInput.value = text;
+                hideError();
+            } catch (err) {
+                console.error('クリップボードの読み取りに失敗しました: ', err);
+                showError('クリップボードへのアクセスが許可されていません。手動でパスを入力してください。');
+            }
+        });
+
+        // 生成ボタンの機能
+        generateButton.addEventListener('click', async () => {
+            const pathValue = pathInput.value.trim();
+            if (!pathValue) {
+                showError('パスを入力してください。');
+                return;
+            }
+
+            hideError();
+            setLoading(true);
+
+            try {
+                const response = await fetch('/api/share', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        filePath: pathValue
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'サーバーエラーが発生しました');
+                }
+
+                // 成功時の処理
+                sharedLink.value = data.shareUrl;
+                autoSharedLink.value = data.autoShareUrl;
+                currentPath = pathValue;
+                currentAutoLink = data.autoShareUrl;
+
+                // パスからファイル名/フォルダ名を取得
+                const pathParts = pathValue.replace(/\\/g, '/').split('/').filter(p => p);
+                const name = pathParts.pop() || pathValue;
+                fileName.textContent = name;
+                fullPath.textContent = pathValue;
+
+                // ファイルかフォルダかを簡易的に判定
+                if (name.includes('.') && !pathValue.endsWith('/') && !pathValue.endsWith('\\')) {
+                    fileIcon.innerHTML = fileIconSvg;
+                } else {
+                    fileIcon.innerHTML = folderIconSvg;
+                }
+
+                resultArea.classList.remove('hidden');
+                copyStatus.textContent = '';
+
+            } catch (error) {
+                console.error('リンク生成エラー:', error);
+                showError(error.message || 'リンクの生成に失敗しました。もう一度お試しください。');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // 通常の共有リンクのコピー機能
+        copyLinkButton.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(sharedLink.value);
+                copyStatus.textContent = '通常リンクをコピーしました！';
+            } catch (err) {
+                // フォールバック: 古いブラウザ対応
+                sharedLink.select();
+                document.execCommand('copy');
+                copyStatus.textContent = '通常リンクをコピーしました！';
+            }
+            
+            setTimeout(() => {
+                copyStatus.textContent = '';
+            }, 2000);
+        });
+
+        // 自動実行リンクのコピー機能
+        copyAutoLinkButton.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(autoSharedLink.value);
+                copyStatus.textContent = '✅ 自動実行リンクをコピーしました！（推奨）';
+            } catch (err) {
+                // フォールバック: 古いブラウザ対応
+                autoSharedLink.select();
+                document.execCommand('copy');
+                copyStatus.textContent = '✅ 自動実行リンクをコピーしました！（推奨）';
+            }
+            
+            setTimeout(() => {
+                copyStatus.textContent = '';
+            }, 2000);
+        });
+
+        // エンターキーで生成
+        pathInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateButton.click();
+            }
+        });
+    </script>
+</body>
+</html>

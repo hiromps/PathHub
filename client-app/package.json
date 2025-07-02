@@ -1,0 +1,23 @@
+{
+  "name": "pathhub-client",
+  "version": "1.0.0",
+  "description": "PathHub クライアントアプリ - ファイルパスをエクスプローラーで開く",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "install-protocol": "node install-protocol.js",
+    "build": "pkg . --output pathhub-client.exe"
+  },
+  "dependencies": {
+    "node-notifier": "^10.0.1"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  },
+  "bin": {
+    "pathhub-client": "./index.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 
