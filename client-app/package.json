@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "install-protocol": "node install-protocol.js",
-    "build": "pkg . --output pathhub-client.exe"
+    "build": "pkg . --output dist/pathhub-client.exe",
+    "build:installer": "pkg . --output dist/pathhub-client.exe && iscc ../installer/pathhub-client.iss"
   },
   "dependencies": {
     "node-notifier": "^10.0.1"

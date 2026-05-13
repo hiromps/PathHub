@@ -44,4 +44,11 @@ temp/
 tmp/
 
 # Windows
-desktop.ini 
+desktop.ini
+
+# Build artifacts
+dist/
+client-app/dist/
+
+# Backups
+backups/
