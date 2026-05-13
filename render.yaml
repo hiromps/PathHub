@@ -2,13 +2,15 @@ services:
   - type: web
     name: pathhub
     env: node
-    buildCommand: npm ci --production
+    buildCommand: npm ci --omit=dev
     startCommand: npm start
     plan: free
     healthCheckPath: /
     region: oregon
     numInstances: 1
     envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
       - key: NODE_ENV
         value: production
       - key: DATABASE_PATH
