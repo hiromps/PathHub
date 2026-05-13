@@ -1,62 +1,118 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<%- include('partials/head', { title: 'PathHub - ' + primary.name }) %>
+<%- include('partials/head', { title: 'PathHub - ' + primary.name + (isMulti ? ' ほか' : '') }) %>
 </head>
 <body class="bg-gray-50 text-gray-800">
     <div class="container mx-auto p-4 md:p-8 max-w-2xl">
         <header class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800">PathHub</h1>
-            <p class="text-gray-500 mt-1">共有されたファイル</p>
+            <p class="text-gray-500 mt-1"><%= isMulti ? '共有された ' + entries.length + ' 件のファイル' : '共有されたファイル' %></p>
         </header>
 
         <main class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
-            <div class="flex items-center mb-6">
-                <div class="mr-4">
-                    <% if (primary.isFile) { %>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-                        </svg>
-                    <% } else { %>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                        </svg>
+
+            <% if (note) { %>
+                <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm text-yellow-900 whitespace-pre-wrap"><%= note %></div>
+            <% } %>
+
+            <% if (tags && tags.length > 0) { %>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <% tags.forEach(function(tag) { %>
+                        <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">#<%= tag %></span>
+                    <% }); %>
+                </div>
+            <% } %>
+
+            <% if (!isMulti) { %>
+                <div class="flex items-center mb-6">
+                    <div class="mr-4">
+                        <% if (primary.isFile) { %>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                            </svg>
+                        <% } else { %>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                            </svg>
+                        <% } %>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800"><%= primary.name %></h2>
+                        <p class="text-gray-500 text-sm">
+                            <%= primary.isFile ? 'ファイル' : 'フォルダ' %><%= primary.isUNC ? ' (ネットワークパス)' : '' %>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">ファイルパス</label>
+                    <p class="text-sm break-all mt-1 font-mono" data-path="<%= primary.path %>"><%= primary.path %></p>
+                    <% if (primary.isUNC) { %>
+                        <p class="text-xs text-blue-600 mt-1">🌐 ネットワークパス (UNC)</p>
                     <% } %>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800"><%= primary.name %></h2>
-                    <p class="text-gray-500 text-sm">
-                        <%= primary.isFile ? 'ファイル' : 'フォルダ' %><%= primary.isUNC ? ' (ネットワークパス)' : '' %>
-                    </p>
+
+                <div class="space-y-3">
+                    <a id="openLink"
+                       href="<%= primary.protocolUrl %>"
+                       data-protocol-url="<%= primary.protocolUrl %>"
+                       class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                        </svg>
+                        エクスプローラーで開く
+                    </a>
+
+                    <button type="button"
+                            class="copy-path-btn w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center"
+                            data-path="<%= primary.path %>">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path>
+                            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path>
+                        </svg>
+                        パスをコピー
+                    </button>
                 </div>
-            </div>
+            <% } else { %>
+                <ul class="divide-y divide-gray-200 mb-6">
+                    <% entries.forEach(function(entry, idx) { %>
+                        <li class="py-4 flex flex-col md:flex-row md:items-center gap-3">
+                            <div class="flex items-start gap-3 min-w-0 flex-1">
+                                <% if (entry.isFile) { %>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 flex-shrink-0 mt-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                                    </svg>
+                                <% } else { %>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500 flex-shrink-0 mt-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                                    </svg>
+                                <% } %>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-gray-800 break-all"><%= entry.name %><% if (entry.isUNC) { %> <span class="text-xs text-blue-600 font-normal">🌐 UNC</span><% } %></div>
+                                    <div class="text-xs text-gray-400 font-mono break-all mt-1"><%= entry.path %></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 md:flex-shrink-0">
+                                <a href="<%= entry.protocolUrl %>"
+                                   data-protocol-url="<%= entry.protocolUrl %>"
+                                   class="open-link bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded-md whitespace-nowrap">
+                                    開く
+                                </a>
+                                <button type="button"
+                                        class="copy-path-btn bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold py-2 px-3 rounded-md whitespace-nowrap"
+                                        data-path="<%= entry.path %>">
+                                    コピー
+                                </button>
+                            </div>
+                        </li>
+                    <% }); %>
+                </ul>
+            <% } %>
 
-            <div class="bg-gray-50 p-4 rounded-lg mb-6">
-                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">ファイルパス</label>
-                <p id="originalPathText" class="text-sm break-all mt-1 font-mono"><%= primary.path %></p>
-                <% if (primary.isUNC) { %>
-                    <p class="text-xs text-blue-600 mt-1">🌐 ネットワークパス (UNC)</p>
-                <% } %>
-            </div>
-
-            <div class="space-y-3">
-                <a id="openLink" href="<%= primary.protocolUrl %>"
-                   data-protocol-url="<%= primary.protocolUrl %>"
-                   class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                    </svg>
-                    エクスプローラーで開く
-                </a>
-
-                <button id="copyButton" class="w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path>
-                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path>
-                    </svg>
-                    パスをコピー
-                </button>
-            </div>
+            <% if (expiresAt) { %>
+                <p class="text-xs text-gray-400 text-right mt-4">有効期限: <%= expiresAt %> (UTC)</p>
+            <% } %>
 
             <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p class="text-sm text-yellow-800">
