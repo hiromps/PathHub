@@ -2,6 +2,10 @@
     'use strict';
 
     const pathInput = document.getElementById('pathInput');
+    const pathCount = document.getElementById('pathCount');
+    const tagsInput = document.getElementById('tagsInput');
+    const noteInput = document.getElementById('noteInput');
+    const expiresInput = document.getElementById('expiresInput');
     const pasteButton = document.getElementById('pasteButton');
     const generateButton = document.getElementById('generateButton');
     const buttonText = document.getElementById('buttonText');
@@ -16,31 +20,29 @@
     const copyAutoLinkButton = document.getElementById('copyAutoLinkButton');
     const copyStatus = document.getElementById('copyStatus');
 
-    const fileIcon = document.getElementById('fileIcon');
-    const fileName = document.getElementById('fileName');
-    const fullPath = document.getElementById('fullPath');
-    const previewOpenLink = document.getElementById('previewOpenLink');
+    const previewNote = document.getElementById('previewNote');
+    const previewTags = document.getElementById('previewTags');
+    const previewList = document.getElementById('previewList');
+    const previewExpiry = document.getElementById('previewExpiry');
 
-    const folderIconSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-        </svg>`;
+    const folderIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>';
+    const fileIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>';
 
-    const fileIconSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-        </svg>`;
+    function describePath(pathValue) {
+        const parts = pathValue.replace(/\\/g, '/').split('/').filter(p => p);
+        const name = parts.pop() || pathValue;
+        const isFile = name.includes('.') && !pathValue.endsWith('/') && !pathValue.endsWith('\\');
+        const isUNC = pathValue.startsWith('\\\\');
+        return { name, isFile, isUNC };
+    }
 
-    function encodeWindowsPath(originalPath) {
-        const isUNC = originalPath.startsWith('\\\\');
-        const segments = originalPath.split('\\').map(part =>
-            part === '' ? part : encodeURIComponent(part)
-        );
-        let encoded = segments.join('%5C');
-        if (!isUNC && (encoded.endsWith('%2F') || encoded.endsWith('/'))) {
-            encoded = encoded.replace(/(%2F|\/)$/, '');
-        }
-        return encoded;
+    function parsePaths(raw) {
+        return raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function updateCount() {
+        const n = parsePaths(pathInput.value).length;
+        pathCount.textContent = `${n} 件`;
     }
 
     function showError(message) {
@@ -54,41 +56,79 @@
     }
 
     function setLoading(loading) {
-        if (loading) {
-            generateButton.disabled = true;
-            buttonText.classList.add('hidden');
-            buttonLoader.classList.remove('hidden');
+        generateButton.disabled = loading;
+        buttonText.classList.toggle('hidden', loading);
+        buttonLoader.classList.toggle('hidden', !loading);
+    }
+
+    function renderPreview(paths, tags, note, expiresAt) {
+        previewList.innerHTML = '';
+        for (const p of paths) {
+            const { name, isFile, isUNC } = describePath(p);
+            const li = document.createElement('li');
+            li.className = 'py-2 flex items-center gap-3';
+            li.innerHTML = `${isFile ? fileIconSvg : folderIconSvg}
+                <div class="min-w-0 flex-1">
+                    <div class="font-medium truncate">${escapeHtml(name)}</div>
+                    <div class="text-xs text-gray-400 font-mono break-all">${escapeHtml(p)}${isUNC ? ' 🌐' : ''}</div>
+                </div>`;
+            previewList.appendChild(li);
+        }
+
+        previewTags.innerHTML = '';
+        for (const tag of tags) {
+            const badge = document.createElement('span');
+            badge.className = 'inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded';
+            badge.textContent = '#' + tag;
+            previewTags.appendChild(badge);
+        }
+
+        if (note) {
+            previewNote.textContent = note;
+            previewNote.classList.remove('hidden');
         } else {
-            generateButton.disabled = false;
-            buttonText.classList.remove('hidden');
-            buttonLoader.classList.add('hidden');
+            previewNote.classList.add('hidden');
+        }
+
+        if (expiresAt) {
+            previewExpiry.textContent = `有効期限: ${expiresAt}`;
+        } else {
+            previewExpiry.textContent = '有効期限: 無期限';
         }
     }
 
-    function describePath(pathValue) {
-        const parts = pathValue.replace(/\\/g, '/').split('/').filter(p => p);
-        const name = parts.pop() || pathValue;
-        const isFile = name.includes('.') && !pathValue.endsWith('/') && !pathValue.endsWith('\\');
-        return { name, isFile };
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
     }
+
+    pathInput.addEventListener('input', updateCount);
+    updateCount();
 
     pasteButton.addEventListener('click', async () => {
         try {
             const text = await navigator.clipboard.readText();
-            pathInput.value = text;
+            pathInput.value = pathInput.value
+                ? pathInput.value.replace(/\s*$/, '') + '\n' + text
+                : text;
+            updateCount();
             hideError();
         } catch (err) {
-            console.error('クリップボードの読み取りに失敗しました:', err);
             showError('クリップボードへのアクセスが許可されていません。手動でパスを入力してください。');
         }
     });
 
     generateButton.addEventListener('click', async () => {
-        const pathValue = pathInput.value.trim();
-        if (!pathValue) {
+        const paths = parsePaths(pathInput.value);
+        if (paths.length === 0) {
             showError('パスを入力してください。');
             return;
         }
+
+        const tagsRaw = tagsInput.value.trim();
+        const note = noteInput.value.trim();
+        const expiresInDays = Number(expiresInput.value);
 
         hideError();
         setLoading(true);
@@ -97,7 +137,7 @@
             const response = await fetch('/api/share', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filePath: pathValue })
+                body: JSON.stringify({ paths, tags: tagsRaw, note, expiresInDays })
             });
 
             const data = await response.json();
@@ -106,14 +146,20 @@
             }
 
             sharedLink.value = data.shareUrl;
-            autoSharedLink.value = data.autoShareUrl;
+            if (paths.length === 1) {
+                autoSharedLink.value = data.autoShareUrl;
+                autoSharedLink.disabled = false;
+                copyAutoLinkButton.disabled = false;
+                copyAutoLinkButton.classList.remove('opacity-50');
+            } else {
+                autoSharedLink.value = '（複数パスの場合は通常リンクをお使いください）';
+                autoSharedLink.disabled = true;
+                copyAutoLinkButton.disabled = true;
+                copyAutoLinkButton.classList.add('opacity-50');
+            }
 
-            const { name, isFile } = describePath(pathValue);
-            fileName.textContent = name;
-            fullPath.textContent = pathValue;
-            fileIcon.innerHTML = isFile ? fileIconSvg : folderIconSvg;
-
-            previewOpenLink.href = `pathhub://${encodeWindowsPath(pathValue)}`;
+            const tagList = data.tags || [];
+            renderPreview(paths, tagList, note, data.expiresAt);
 
             resultArea.classList.remove('hidden');
             copyStatus.textContent = '';
@@ -134,9 +180,9 @@
             textArea.value = text;
             document.body.appendChild(textArea);
             textArea.select();
-            const success = document.execCommand('copy');
+            const ok = document.execCommand('copy');
             document.body.removeChild(textArea);
-            return success;
+            return ok;
         }
     }
 
@@ -152,13 +198,15 @@
     });
 
     copyAutoLinkButton.addEventListener('click', async () => {
+        if (copyAutoLinkButton.disabled) return;
         if (await copyToClipboard(autoSharedLink.value)) {
             flashCopyStatus('✅ 自動実行リンクをコピーしました！（推奨）');
         }
     });
 
-    pathInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
+    pathInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
             generateButton.click();
         }
     });

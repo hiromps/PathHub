@@ -18,15 +18,42 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
                 <h2 class="text-2xl font-bold mt-4">共有リンクを生成</h2>
-                <p class="text-gray-500 mt-1">PCのエクスプローラーのアドレスを貼り付けてください。</p>
+                <p class="text-gray-500 mt-1">パスは1行に1つ。複数行入力で一括共有できます。</p>
             </div>
 
-            <div class="mt-8">
-                <div class="relative">
-                    <input type="text" id="pathInput" class="w-full p-4 pr-28 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow" placeholder="例: \\server01\share\プロジェクト資料">
-                    <button id="pasteButton" class="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-200 text-gray-600 hover:bg-gray-300 font-semibold py-2 px-4 rounded-md text-sm transition-colors">貼り付け</button>
+            <div class="mt-8 space-y-4">
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="pathInput" class="text-sm font-semibold text-gray-700">ファイルパス <span class="text-red-500">*</span></label>
+                        <button id="pasteButton" type="button" class="text-xs bg-gray-200 text-gray-600 hover:bg-gray-300 font-semibold py-1 px-3 rounded-md transition-colors">クリップボードから貼り付け</button>
+                    </div>
+                    <textarea id="pathInput" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow font-mono text-sm" placeholder="例: C:\Users\hiro\Documents&#10;\\server01\share\プロジェクト資料"></textarea>
+                    <p id="pathCount" class="text-xs text-gray-400 mt-1">0 件</p>
                 </div>
-                <button id="generateButton" class="w-full mt-4 bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-102 disabled:opacity-50 disabled:cursor-not-allowed">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="tagsInput" class="block text-sm font-semibold text-gray-700 mb-1">タグ <span class="text-gray-400 text-xs font-normal">(任意・最大5個・カンマ区切り)</span></label>
+                        <input id="tagsInput" type="text" maxlength="200" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="例: 設計資料, prj-x">
+                    </div>
+                    <div>
+                        <label for="expiresInput" class="block text-sm font-semibold text-gray-700 mb-1">有効期限</label>
+                        <select id="expiresInput" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="7">7 日</option>
+                            <option value="30">30 日</option>
+                            <option value="90" selected>90 日</option>
+                            <option value="365">1 年</option>
+                            <option value="0">無期限</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="noteInput" class="block text-sm font-semibold text-gray-700 mb-1">メモ <span class="text-gray-400 text-xs font-normal">(任意・200文字まで)</span></label>
+                    <textarea id="noteInput" rows="2" maxlength="200" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="このリンクの目的や注意点を相手に伝えるメモ"></textarea>
+                </div>
+
+                <button id="generateButton" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                     <span id="buttonText">共有リンクを生成する</span>
                     <div id="buttonLoader" class="loading hidden"></div>
                 </button>
@@ -55,7 +82,7 @@
                             <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">通常の共有リンク</label>
                             <div class="flex items-center space-x-2 bg-white p-3 rounded-md border">
                                 <input type="text" id="sharedLink" class="flex-grow bg-transparent border-none focus:ring-0" readonly>
-                                <button id="copyLinkButton" class="bg-blue-100 text-blue-700 hover:bg-blue-200 font-semibold py-1 px-3 rounded-md text-sm transition-colors">コピー</button>
+                                <button id="copyLinkButton" type="button" class="bg-blue-100 text-blue-700 hover:bg-blue-200 font-semibold py-1 px-3 rounded-md text-sm transition-colors">コピー</button>
                             </div>
                         </div>
 
@@ -63,32 +90,21 @@
                             <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">自動実行リンク（推奨）</label>
                             <div class="flex items-center space-x-2 bg-green-50 p-3 rounded-md border border-green-200">
                                 <input type="text" id="autoSharedLink" class="flex-grow bg-transparent border-none focus:ring-0" readonly>
-                                <button id="copyAutoLinkButton" class="bg-green-100 text-green-700 hover:bg-green-200 font-semibold py-1 px-3 rounded-md text-sm transition-colors">コピー</button>
+                                <button id="copyAutoLinkButton" type="button" class="bg-green-100 text-green-700 hover:bg-green-200 font-semibold py-1 px-3 rounded-md text-sm transition-colors">コピー</button>
                             </div>
-                            <p class="text-xs text-green-600 mt-1">このリンクをクリックすると自動的にエクスプローラーが開きます</p>
+                            <p class="text-xs text-green-600 mt-1">単一パスの共有時のみ自動実行に対応しています。</p>
                         </div>
                     </div>
 
                     <p id="copyStatus" class="text-green-600 text-sm mt-1 h-4"></p>
 
-                    <div class="mt-6 pt-6 border-t">
+                    <div id="previewArea" class="mt-6 pt-6 border-t">
                         <h4 class="font-semibold text-gray-500 text-sm mb-2">相手にはこのように表示されます:</h4>
-                        <div class="border rounded-lg p-4 bg-white shadow-sm">
-                            <div class="flex items-center">
-                                <div id="fileIcon" class="mr-4"></div>
-                                <span id="fileName" class="font-bold text-lg"></span>
-                            </div>
-                            <div class="mt-4 bg-gray-50 p-3 rounded-md">
-                                <label class="text-xs font-semibold text-gray-500">ファイルパス</label>
-                                <p id="fullPath" class="text-sm break-all"></p>
-                            </div>
-                            <a id="previewOpenLink" href="#" class="w-full mt-4 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                                </svg>
-                                エクスプローラーで開く（プレビューテスト）
-                            </a>
-                            <p class="text-xs text-gray-400 mt-2 text-center">※上記ボタンで動作確認ができます</p>
+                        <div class="border rounded-lg p-4 bg-white shadow-sm space-y-3">
+                            <div id="previewNote" class="hidden bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm text-yellow-900 whitespace-pre-wrap"></div>
+                            <div id="previewTags" class="flex flex-wrap gap-2"></div>
+                            <ul id="previewList" class="divide-y divide-gray-100"></ul>
+                            <p id="previewExpiry" class="text-xs text-gray-400 text-right"></p>
                         </div>
                     </div>
                 </div>
