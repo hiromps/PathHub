@@ -3,6 +3,9 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const cors = require('cors');
 const { nanoid } = require('nanoid');
+const { describePath } = require('./src/utils/path-meta');
+const { encodeWindowsPath } = require('./src/utils/path-encoder');
+const { validateFilePath } = require('./src/utils/validate');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,24 +37,26 @@ app.get('/', (req, res) => {
 // パス共有リンク生成API
 app.post('/api/share', (req, res) => {
     const { filePath } = req.body;
-    
-    if (!filePath || filePath.trim() === '') {
-        return res.status(400).json({ error: 'ファイルパスが指定されていません' });
+    const validation = validateFilePath(filePath);
+
+    if (!validation.ok) {
+        return res.status(400).json({ error: validation.error });
     }
 
+    const cleanPath = validation.value;
     const shareId = nanoid(8);
     const shareUrl = `${req.protocol}://${req.get('host')}/s/${shareId}`;
     const autoShareUrl = `${req.protocol}://${req.get('host')}/s/${shareId}?auto=true`;
 
     try {
         const stmt = db.prepare('INSERT INTO shared_paths (id, original_path) VALUES (?, ?)');
-        stmt.run(shareId, filePath.trim());
+        stmt.run(shareId, cleanPath);
 
         res.json({
             shareId: shareId,
             shareUrl: shareUrl,
             autoShareUrl: autoShareUrl,
-            originalPath: filePath.trim()
+            originalPath: cleanPath
         });
     } catch (err) {
         console.error(err);
@@ -94,45 +99,9 @@ app.get('/s/:id', (req, res) => {
         const updateStmt = db.prepare('UPDATE shared_paths SET access_count = access_count + 1 WHERE id = ?');
         updateStmt.run(shareId);
 
-        // ファイル名を取得
-        const pathParts = row.original_path.replace(/\\/g, '/').split('/').filter(p => p);
-        const name = pathParts.pop() || row.original_path;
-        const isFile = name.includes('.') && !row.original_path.endsWith('/') && !row.original_path.endsWith('\\');
-        const isUNCPath = row.original_path.startsWith('\\\\');
-
-        // パスを適切にエンコード（UNCパスの場合は特別処理）
-        let encodedPath;
-        if (isUNCPath) {
-            // UNCパスの場合：各部分を個別にエンコードしてから結合
-            const uncParts = row.original_path.split('\\');
-            const encodedParts = uncParts.map(part => {
-                if (part === '') return part; // 先頭の空文字列はそのまま
-                return encodeURIComponent(part);
-            });
-            encodedPath = encodedParts.join('%5C'); // %5C は \ のエンコード
-        } else {
-            // ローカルパスの場合：UTF-8対応の正確なエンコーディング
-            try {
-                // 日本語文字を含むパスの処理を改善
-                const pathParts = row.original_path.split('\\');
-                const encodedParts = pathParts.map(part => {
-                    if (part === '') return part; // 空の部分（ドライブレターの後など）
-                    // 各パス部分を個別にエンコード
-                    return encodeURIComponent(part);
-                });
-                encodedPath = encodedParts.join('%5C');
-                
-                // 末尾のスラッシュを除去
-                if (encodedPath.endsWith('%2F') || encodedPath.endsWith('/')) {
-                    encodedPath = encodedPath.replace(/(%2F|\/)$/, '');
-                }
-            } catch (encodingError) {
-                console.error('エンコーディングエラー:', encodingError);
-                // フォールバック：従来の方法
-                encodedPath = encodeURIComponent(row.original_path);
-            }
-        }
-        
+        const meta = describePath(row.original_path);
+        const { name, isFile, isUNC: isUNCPath } = meta;
+        const encodedPath = encodeWindowsPath(row.original_path);
         const protocolUrl = `pathhub://${encodedPath}`;
         
         // 本番環境: デバッグ情報ログを削除
