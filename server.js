@@ -1,7 +1,10 @@
 const app = require('./src/app');
 const db = require('./src/db');
+const cleanup = require('./src/jobs/cleanup');
 
 const PORT = process.env.PORT || 3000;
+
+cleanup.start();
 
 const server = app.listen(PORT, () => {
     console.log(`PathHub サーバーが起動しました: http://localhost:${PORT}`);
@@ -9,6 +12,7 @@ const server = app.listen(PORT, () => {
 
 process.on('SIGINT', () => {
     console.log('\nサーバーを終了しています...');
+    cleanup.stop();
     server.close(() => {
         try {
             db.close();
