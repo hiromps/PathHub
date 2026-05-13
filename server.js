@@ -13,6 +13,10 @@ const PORT = process.env.PORT || 3000;
 // データベースパスを環境変数で設定可能に
 const DB_PATH = process.env.DATABASE_PATH || 'pathhub.db';
 
+// View engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'src', 'views'));
+
 // ミドルウェア
 app.use(cors());
 app.use(express.json());
@@ -29,9 +33,9 @@ db.exec(`CREATE TABLE IF NOT EXISTS shared_paths (
     access_count INTEGER DEFAULT 0
 )`);
 
-// 静的ファイル配信（メインページ）
+// メインページ
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.render('index');
 });
 
 // パス共有リンク生成API
