@@ -1,0 +1,70 @@
+<div class="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+        <h3 class="font-bold text-gray-800 text-sm">🔧 トラブルシューティング</h3>
+    </div>
+    <div class="divide-y divide-gray-200">
+        <details class="group">
+            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center justify-between">
+                <span>「エクスプローラーで開く」を押してもブラウザが反応しない</span>
+                <span class="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="px-4 py-3 text-sm text-gray-700 bg-gray-50 space-y-2">
+                <p><strong>原因:</strong> PathHub クライアントアプリが未インストール、またはプロトコルハンドラーが登録されていません。</p>
+                <p><strong>解決手順:</strong></p>
+                <ol class="list-decimal list-inside space-y-1 pl-2">
+                    <li><a href="/download" class="text-blue-600 underline">クライアントアプリをインストール</a></li>
+                    <li>インストール後、ブラウザを一度閉じて再起動</li>
+                    <li>このページを再読み込みして再度クリック</li>
+                </ol>
+            </div>
+        </details>
+
+        <details class="group">
+            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center justify-between">
+                <span>「指定されたファイルが見つかりません」と表示される</span>
+                <span class="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="px-4 py-3 text-sm text-gray-700 bg-gray-50 space-y-2">
+                <p><strong>原因:</strong> 共有者のPC内のパスが、あなたのPCには存在しない可能性があります。</p>
+                <p><strong>確認ポイント:</strong></p>
+                <ul class="list-disc list-inside space-y-1 pl-2">
+                    <li>共有者と同じネットワーク／ドライブにアクセスできていますか</li>
+                    <li>個人フォルダ (例: <code>C:\Users\xxx\Desktop</code>) は他人のPCでは開けません</li>
+                    <li>ファイルが移動・削除されていないか共有者に確認してください</li>
+                </ul>
+            </div>
+        </details>
+
+        <details class="group">
+            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center justify-between">
+                <span>ネットワークパス (\\server\...) にアクセスできない</span>
+                <span class="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="px-4 py-3 text-sm text-gray-700 bg-gray-50 space-y-2">
+                <p><strong>原因:</strong> 共有サーバーへの接続権限が無い、または VPN 等で接続されていません。</p>
+                <p><strong>解決手順:</strong></p>
+                <ol class="list-decimal list-inside space-y-1 pl-2">
+                    <li>社内 VPN や Wi-Fi に接続されているか確認</li>
+                    <li>エクスプローラーから直接 <code>\\server\share</code> を開いて認証情報を入力</li>
+                    <li>権限が無い場合は共有元の担当者にアクセス申請</li>
+                </ol>
+            </div>
+        </details>
+
+        <details class="group">
+            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center justify-between">
+                <span>Windows Defender / ウイルス対策に止められる</span>
+                <span class="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="px-4 py-3 text-sm text-gray-700 bg-gray-50 space-y-2">
+                <p><strong>原因:</strong> 署名されていない実行ファイルなので、SmartScreen に警告される場合があります。</p>
+                <p><strong>解決手順:</strong></p>
+                <ol class="list-decimal list-inside space-y-1 pl-2">
+                    <li>SmartScreen の警告で「詳細情報」→「実行」をクリック</li>
+                    <li>セキュリティポリシーで制限されている場合は、IT担当者に PathHub の利用許可を依頼</li>
+                    <li>代わりに「パスをコピー」で取得したパスをエクスプローラーに直接貼り付けても利用できます</li>
+                </ol>
+            </div>
+        </details>
+    </div>
+</div>
