@@ -37,6 +37,12 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 Source: "..\client-app\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme
+; node-notifier の Windows 用ネイティブバイナリは pkg で同梱できないため、
+; インストーラーが notifier/ サブディレクトリに配置する。
+Source: "..\client-app\node_modules\node-notifier\vendor\snoreToast\snoretoast-x64.exe"; DestDir: "{app}\notifier"; Flags: ignoreversion
+Source: "..\client-app\node_modules\node-notifier\vendor\snoreToast\snoretoast-x86.exe"; DestDir: "{app}\notifier"; Flags: ignoreversion
+Source: "..\client-app\node_modules\node-notifier\vendor\notifu\notifu.exe"; DestDir: "{app}\notifier"; Flags: ignoreversion
+Source: "..\client-app\node_modules\node-notifier\vendor\notifu\notifu64.exe"; DestDir: "{app}\notifier"; Flags: ignoreversion
 
 [Registry]
 ; Protocol handler registration: HKCU\Software\Classes\pathhub

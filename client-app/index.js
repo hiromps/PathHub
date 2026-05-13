@@ -6,7 +6,10 @@ const fs = require('fs');
 const notifier = require('node-notifier');
 
 // ログファイルの設定
-const logFile = path.join(__dirname, 'pathhub-client.log');
+// pkg でバンドルされた環境では __dirname が読み取り専用の仮想パス (C:\snapshot\...) になるため、
+// 実行ファイルと同じディレクトリ (path.dirname(process.execPath)) を使う。
+const logDir = process.pkg ? path.dirname(process.execPath) : __dirname;
+const logFile = path.join(logDir, 'pathhub-client.log');
 
 function writeLog(message) {
     const timestamp = new Date().toISOString();
