@@ -4,9 +4,14 @@
 <%- include('partials/head', { title: 'PathHub - リンクが見つかりません' }) %>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen">
-    <div class="text-center">
-        <h1 class="text-2xl font-bold text-gray-800 mb-4">リンクが見つかりません</h1>
-        <p class="text-gray-600 mb-4">指定されたリンクは存在しないか、期限切れです。</p>
+    <div class="text-center max-w-md p-6">
+        <% if (typeof reason !== 'undefined' && reason === 'expired') { %>
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">リンクの有効期限が切れています</h1>
+            <p class="text-gray-600 mb-4">このリンクは有効期限を過ぎたため、表示できません。</p>
+        <% } else { %>
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">リンクが見つかりません</h1>
+            <p class="text-gray-600 mb-4">指定されたリンクは存在しないか、期限切れです。</p>
+        <% } %>
         <a href="/" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
             PathHubに戻る
         </a>
