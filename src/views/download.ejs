@@ -11,45 +11,66 @@
         </header>
 
         <main class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
-            <div class="text-center mb-8">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6.42 2.502 2.502 0 0116 6a2.5 2.5 0 012.5 2.5v.5h.5A2.5 2.5 0 0021.5 11a2.5 2.5 0 01-2.5 2.5h-5a2.5 2.5 0 01-2.5-2.5H7" />
-                </svg>
-                <h2 class="text-2xl font-bold mt-4">インストール手順</h2>
-            </div>
 
-            <div class="space-y-6">
-                <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                    <h3 class="font-bold text-lg mb-3">📦 1. Node.jsをインストール</h3>
-                    <p class="text-gray-700 mb-3">PathHubクライアントアプリを実行するには、Node.jsが必要です。</p>
-                    <a href="https://nodejs.org/" target="_blank" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block">
-                        Node.jsをダウンロード
-                    </a>
-                </div>
+            <% if (latest && latest.available) { %>
+                <section class="mb-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M4 6h16M4 18h16"/>
+                        </svg>
+                        <div class="flex-1">
+                            <p class="text-sm text-blue-700 font-semibold uppercase tracking-wide">最新版</p>
+                            <p class="text-xl font-bold text-gray-800">PathHub Client <%= latest.version %></p>
+                            <% if (latest.sizeBytes) { %>
+                                <p class="text-xs text-gray-500 mt-1">サイズ: <%= Math.round(latest.sizeBytes / 1024 / 1024 * 10) / 10 %> MB</p>
+                            <% } %>
+                        </div>
+                        <a href="/download/installer" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg whitespace-nowrap">
+                            Windows 版をダウンロード
+                        </a>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-3">
+                        ダウンロード後、<code>PathHub-Setup-<%= latest.version %>.exe</code> を実行してください。インストーラーがプロトコル登録まで自動で行います。
+                    </p>
+                </section>
+            <% } else { %>
+                <section class="mb-8 bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+                    <p class="text-gray-600">インストーラーは現在準備中です。</p>
+                    <p class="text-xs text-gray-400 mt-1">下記の開発者向け手順をご利用ください。</p>
+                </section>
+            <% } %>
 
-                <div class="bg-green-50 p-6 rounded-lg border border-green-200">
-                    <h3 class="font-bold text-lg mb-3">⚡ 2. クライアントアプリをセットアップ</h3>
-                    <p class="text-gray-700 mb-3">以下のコマンドをPowerShellまたはコマンドプロンプトで実行してください：</p>
-                    <div class="bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-sm">
-                        <div class="mb-2"># PathHubプロジェクトフォルダに移動</div>
-                        <div class="mb-2">cd PathHub\client-app</div>
-                        <div class="mb-2"># 依存関係をインストール</div>
-                        <div class="mb-2">npm install</div>
-                        <div class="mb-2"># プロトコルハンドラーを登録</div>
-                        <div>npm run install-protocol</div>
+            <details class="mb-6">
+                <summary class="cursor-pointer font-semibold text-gray-700 hover:text-gray-900">開発者向け: ソースからセットアップする</summary>
+                <div class="mt-4 space-y-6">
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                        <h3 class="font-bold text-lg mb-3">📦 1. Node.js をインストール</h3>
+                        <p class="text-gray-700 mb-3">クライアントアプリを実行するには Node.js (v18 以上) が必要です。</p>
+                        <a href="https://nodejs.org/" target="_blank" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block">
+                            Node.js をダウンロード
+                        </a>
+                    </div>
+
+                    <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                        <h3 class="font-bold text-lg mb-3">⚡ 2. クライアントアプリをセットアップ</h3>
+                        <p class="text-gray-700 mb-3">PowerShell またはコマンドプロンプトで以下を実行:</p>
+                        <div class="bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-sm">
+                            <div class="mb-2">cd PathHub\client-app</div>
+                            <div class="mb-2">npm install</div>
+                            <div>npm run install-protocol</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                        <h3 class="font-bold text-lg mb-3">🧪 3. 動作確認</h3>
+                        <p class="text-gray-700 mb-3">ブラウザのアドレスバーに以下を入力:</p>
+                        <div class="bg-gray-100 p-3 rounded-lg font-mono text-sm">
+                            pathhub://C:\Users
+                        </div>
+                        <p class="text-gray-600 text-sm mt-2">エクスプローラーで Users フォルダが開けば成功です。</p>
                     </div>
                 </div>
-
-                <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-                    <h3 class="font-bold text-lg mb-3">🧪 3. テスト</h3>
-                    <p class="text-gray-700 mb-3">ブラウザのアドレスバーに以下を入力してテストしてください：</p>
-                    <div class="bg-gray-100 p-3 rounded-lg font-mono text-sm">
-                        pathhub://C:\Users
-                    </div>
-                    <p class="text-gray-600 text-sm mt-2">エクスプローラーでUsersフォルダが開けば成功です！</p>
-                </div>
-
-            </div>
+            </details>
 
             <%- include('partials/troubleshoot') %>
 
